@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	friends "github.com/kechako/go-friends"
+	"github.com/kechako/friends"
 )
 
 var appID string
