@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	da "github.com/kechako/go-yahoo-da"
-	"golang.org/x/xerrors"
 )
 
 // FirstPersons is a slice of first person words.
@@ -92,7 +91,7 @@ func New(appID string) *Friends {
 func (f *Friends) Say(ctx context.Context, text string) (string, error) {
 	res, err := f.client.Parse(ctx, text)
 	if err != nil {
-		return "", xerrors.Errorf("fail to parse the text: %w", err)
+		return "", fmt.Errorf("fail to parse the text: %w", err)
 	}
 
 	if len(res.Results) == 0 || len(res.Results[0].Chunks) == 0 {
