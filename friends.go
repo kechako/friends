@@ -107,7 +107,7 @@ func (f *Friends) Say(ctx context.Context, text string) (string, error) {
 
 		if specialtyID < 0 {
 			for _, t := range chunk.Tokens {
-				if t.Surface() == "得意" && t.PartOfSpeech() == "名詞" {
+				if isSpecialty(t) {
 					specialtyID = chunk.ID
 					break
 				}
@@ -184,4 +184,10 @@ func firstPerson(subject string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func isSpecialty(t da.Token) bool {
+	s := t.Surface()
+
+	return strings.HasPrefix(s, "得意") && t.PartOfSpeech() == "形容詞"
 }
