@@ -1,3 +1,4 @@
+// Package friends is a generate friends statement from the text.
 package friends
 
 import (
@@ -5,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	da "github.com/kechako/go-yahoo-da"
+	"github.com/kechako/go-yahoo/da"
 )
 
 // FirstPersons is a slice of first person words.
@@ -82,7 +83,7 @@ type Friends struct {
 // New returns a new *Friends.
 func New(appID string) *Friends {
 	return &Friends{
-		client: da.NewClient(appID),
+		client: da.New(appID),
 	}
 }
 
@@ -94,19 +95,19 @@ func (f *Friends) Say(ctx context.Context, text string) (string, error) {
 		return "", fmt.Errorf("fail to parse the text: %w", err)
 	}
 
-	if len(res.Results) == 0 || len(res.Results[0].Chunks) == 0 {
+	if len(res.Chunks) == 0 {
 		return "", nil
 	}
 
 	specialtyID := -1
 
 	chunkMap := make(map[int][]da.Chunk)
-	for _, chunk := range res.Results[0].Chunks {
-		chunkMap[chunk.Dependency] = append(chunkMap[chunk.Dependency], chunk)
+	for _, chunk := range res.Chunks {
+		chunkMap[chunk.Head] = append(chunkMap[chunk.Head], chunk)
 
 		if specialtyID < 0 {
-			for _, m := range chunk.Morphemes {
-				if m.Surface == "得意" && m.POS == "名詞" {
+			for _, t := range chunk.Tokens {
+				if t.Surface() == "得意" && t.PartOfSpeech() == "名詞" {
 					specialtyID = chunk.ID
 					break
 				}
@@ -125,28 +126,28 @@ func (f *Friends) Say(ctx context.Context, text string) (string, error) {
 
 	var subject, specialty string
 	for _, dep := range deps {
-		mlen := len(dep.Morphemes)
-		if mlen < 2 {
+		tlen := len(dep.Tokens)
+		if tlen < 2 {
 			continue
 		}
 
-		lastWord := dep.Morphemes[mlen-1]
-		if lastWord.POS != "助詞" {
+		lastWord := dep.Tokens[tlen-1]
+		if lastWord.PartOfSpeech() != "助詞" {
 			continue
 		}
 
-		switch lastWord.Surface {
+		switch lastWord.Surface() {
 		case "は":
 			subject = ""
-			for i := 0; i < mlen-1; i++ {
-				m := dep.Morphemes[i]
-				subject += m.Surface
+			for i := 0; i < tlen-1; i++ {
+				t := dep.Tokens[i]
+				subject += t.Surface()
 			}
 		case "が", "も":
 			specialty = ""
-			for i := 0; i < mlen-1; i++ {
-				m := dep.Morphemes[i]
-				specialty += m.Surface
+			for i := 0; i < tlen-1; i++ {
+				t := dep.Tokens[i]
+				specialty += t.Surface()
 			}
 		}
 	}
